@@ -149,7 +149,7 @@ class GenerativeInpaintingTest(object):
     def train(self, sleep=False):
         # randomly sleep seconds to avoid confilctc
         if sleep:
-            t = np.random.randint(1, 100)
+            t = np.random.randint(1, 20)
             time.sleep(t)
 
 
@@ -168,16 +168,12 @@ class GenerativeInpaintingTest(object):
             else:
                 res_dir = os.path.join(res_dir, self.cfg['video_name'])
             self.cfg['res_dir'] = res_dir
-            if os.path.exists(res_dir):
-                # exit
-                print("Video folder existed!!!")
-                return
-            
-            os.mkdir(res_dir)
-            # pass folder
-            res_dir = os.path.join(self.cfg['res_dir'], '{:03}'.format(1))
-            os.mkdir(res_dir)
-            self.build_dir(res_dir, 'final')
+            if not os.path.exists(res_dir):
+                os.mkdir(res_dir)
+                # pass folder
+                res_dir = os.path.join(self.cfg['res_dir'], '{:03}'.format(1))
+                os.mkdir(res_dir)
+                self.build_dir(res_dir, 'final')
 
             self.log_file = open(os.path.join(self.cfg['res_dir'], 'log.txt'), 'w')
             for key in sorted(self.cfg):

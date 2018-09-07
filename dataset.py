@@ -128,12 +128,32 @@ class Dataset(object):
         input_batch, img_batch, mask_batch, contour_batch = [], [], [], []
         for i, fid in enumerate(cur_batch):
             gt, mask = self.load_single_frame(fid)
+            _, contour, hier = cv2.findContours(mask[:, :, 0].astype('uint8'), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+
+            ###
+            if self.cfg['use_square_mask']:
+                mask_square = np.zeros((self.frame_size), dtype='uint8')
+                for con in contour:
+                    xmin = self.frame_W
+                    xmax = 0
+                    ymin = self.frame_H
+                    ymax = 0
+                    for pt in con:
+                        x, y = pt[0]
+                        xmin = min(xmin, x)
+                        xmax = max(xmax, x)
+                        ymin = min(ymin, y)
+                        ymax = max(ymax, y)
+                    mask_square[ymin : ymax+1, xmin : xmax+1, :] = np.array([255, 255, 255])
+                    # mask_square[self.frame_H//4*3 : ymax+1, xmin : xmax+1, :] = np.array([255, 255, 255])
+                    # mask_square[ymin : ymax+1, self.frame_W//2-20 : xmax+1, :] = np.array([255, 255, 255])
+                mask = mask_square
+            ###
+
             image = gt * (1. - (mask > 0)) + mask
             input = np.concatenate([image.astype('uint8'), mask], axis=1)
-
             img = cv2.cvtColor(gt, cv2.COLOR_BGR2RGB)
             mask = mask[:, :, 0:1]
-            _, contour, hier = cv2.findContours(mask[:, :, 0].astype('uint8'), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
 
             img_batch.append(img)
             mask_batch.append(mask)
