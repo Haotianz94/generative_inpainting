@@ -19,16 +19,13 @@ def run_test(cfg):
 
 def main():
     
-    cfg_idx_start = int(sys.argv[1])
-    cfg_idx_end = int(sys.argv[2])
-    for cfg_idx in range(cfg_idx_start, cfg_idx_end+1):
-        
-        cfg_add = pickle.load(open('../../tmp/cfg/cfg_' + str(cfg_idx) + '.pkl', 'rb'))
-        cfg = copy.deepcopy(base_cfg)
-        for key, value in cfg_add.items():
-            cfg[key] = value
-    
-        run_test(cfg)
+    cfg_path = sys.argv[1]
+    cfg_add = pickle.load(open(cfg_path, 'rb'))
+    cfg = copy.deepcopy(base_cfg)
+    for key, value in cfg_add.items():
+        cfg[key] = value
+
+    run_test(cfg)
 
         
 if __name__ == "__main__":
