@@ -111,3 +111,8 @@ python inpaint_ops.py --imageA examples/style_transfer/bnw_butterfly.png  --imag
   year={2018}
 }
 ```
+
+## Personal Advice Summary
+1. Run `pip3 install git+https://github.com/JiahuiYu/neuralgym pyyaml`
+
+2. Download pretrained model, change "checkpoint.txt" to "checkpoint"

@@ -5,7 +5,6 @@ import time
 import datetime
 import copy
 from generative_inpainting_test import GenerativeInpaintingTest
-from base_cfg import base_cfg
 
 
 def run_test(cfg):
@@ -20,11 +19,7 @@ def run_test(cfg):
 def main():
     
     cfg_path = sys.argv[1]
-    cfg_add = pickle.load(open(cfg_path, 'rb'))
-    cfg = copy.deepcopy(base_cfg)
-    for key, value in cfg_add.items():
-        cfg[key] = value
-
+    cfg = pickle.load(open(cfg_path, 'rb'))
     run_test(cfg)
 
         

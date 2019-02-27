@@ -1,7 +1,6 @@
 import neuralgym as ng
-from dataset import Dataset
+from base_dataset import Dataset
 from inpaint_model import InpaintCAModel
-from utils.common_utils import *
 
 import numpy as np
 import time
@@ -30,7 +29,7 @@ class GenerativeInpaintingTest(object):
         self.model = InpaintCAModel()
 
     
-    def plot_and_save(self, batch_idx, batch_data, subpath, save_upsample=False):
+    def plot_and_save(self, batch_idx, batch_data, subpath):
         # load cfg
         batch_size = self.cfg['batch_size']
         batch_stride = self.cfg['batch_stride']
@@ -42,7 +41,7 @@ class GenerativeInpaintingTest(object):
                 if img is None:
                     continue
                 sequence_path = os.path.join(res_dir, 'sequence', '{:03}.png'.format(batch_idx + i*batch_stride))
-                img_pil = np_to_pil(img)
+                img_pil = Image.fromarray(img.astype(np.uint8))
                 if traverse_step <= batch_size // 2:    
                     if batch_idx < batch_stride or i >= batch_size // 2: 
                         img_pil.save(sequence_path)
@@ -53,34 +52,31 @@ class GenerativeInpaintingTest(object):
         img_batch = batch_data['img_batch']
         mask_batch = batch_data['mask_batch']
         contour_batch = batch_data['contour_batch']
-        out_img_batch = batch_data['out_img_batch'].copy()
-        nonhole_batch = img_batch * (1 - mask_batch)
-        stitch_batch = nonhole_batch + out_img_batch * mask_batch
-
+        out_img_batch = batch_data['out_img_batch']
+        ## use the original mask to fuse the result
+        out_img_batch_raw = img_batch * (1 - mask_batch) + out_img_batch * mask_batch
+        out_img_batch = out_img_batch_raw.copy()
 
         # draw mask boundary
-        if self.cfg['draw_boundary']:
-            for i in range(batch_size):
-                for con in contour_batch[i]:
-                    for pt in con:
-                        x, y = pt[0]
-                        out_img_batch[i][y, x, :] = [255, 0, 0]
-                        stitch_batch[i][y, x, :] = [255, 0, 0]
+        for i in range(batch_size):
+            for con in contour_batch[i]:
+                for pt in con:
+                    x, y = pt[0]
+                    out_img_batch[i][y, x, :] = [255, 0, 0]
 
         # store images
-        if not self.cfg['res_dir'] is None and self.cfg['save']:
+        if not self.cfg['res_dir'] is None:
             save(out_img_batch, subpath, 'full')
+            save(out_img_batch_raw, subpath, 'full_raw')
 
 
     def build_dir(self, res_dir, subpath):
-        os.mkdir(os.path.join(res_dir, subpath))
-        res_type_list = ['full']
+        os.makedirs(os.path.join(res_dir, subpath))
+        res_type_list = ['full_raw', 'full']
         for res_type in res_type_list:
             sub_res_dir = os.path.join(res_dir, subpath, res_type)
-            os.mkdir(sub_res_dir)
-            os.mkdir(os.path.join(sub_res_dir, 'sequence'))
-            if self.cfg['save_batch']:
-                os.mkdir(os.path.join(sub_res_dir, 'batch'))
+            os.makedirs(sub_res_dir)
+            os.makedirs(os.path.join(sub_res_dir, 'sequence'))
 
     
     def train(self, sleep=False):
@@ -177,7 +173,7 @@ class GenerativeInpaintingTest(object):
             out_img_batch = result
             batch_data['out_img_batch'] = out_img_batch
 
-            self.plot_and_save(batch_idx, batch_data, '{:03}/final'.format(1), self.cfg['save_upsample'])
+            self.plot_and_save(batch_idx, batch_data, '{:03}/final'.format(1))
 
         # log
         log_str = 'Batch {:05}'.format(batch_idx)
