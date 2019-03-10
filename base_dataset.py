@@ -125,7 +125,7 @@ class Dataset(object):
                     xmax = max(xmax, x)
                     ymin = min(ymin, y)
                     ymax = max(ymax, y)
-            mask_square[ymin : ymax+1, xmin : xmax+1, :] = np.array([255, 255, 255])
+                mask_square[ymin : ymax+1, xmin : xmax+1, :] = np.array([255, 255, 255])
             
             image = gt * (1. - (mask_square > 0)) + mask_square
             input = np.concatenate([image.astype('uint8'), mask_square], axis=1)
